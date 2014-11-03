@@ -2,33 +2,23 @@ package com.dataart.vyakunin.udacitystudyproject;
 
 import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import android.widget.TextView;
 
 
-public class HomeActivity extends ActionBarActivity {
+public class DetailActivity extends ActionBarActivity {
+
+    public static final String TEXT_EXTRA = "TEXT_EXTRA";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new HomeFragment())
+                    .add(R.id.container, new DetailsFragment())
                     .commit();
         }
     }
@@ -37,7 +27,7 @@ public class HomeActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home, menu);
+        getMenuInflater().inflate(R.menu.detail, menu);
         return true;
     }
 
@@ -54,5 +44,4 @@ public class HomeActivity extends ActionBarActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

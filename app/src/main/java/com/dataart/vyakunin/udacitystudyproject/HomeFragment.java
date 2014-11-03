@@ -1,8 +1,12 @@
 package com.dataart.vyakunin.udacitystudyproject;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,8 +15,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,22 +36,52 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements AdapterView.OnItemClickListener {
     private ArrayAdapter<String> adapter;
+    private ListView listView;
+
+    private void updateData() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = preferences.getString(getString(R.string.location_key), getString(R.string.default_location));
+        new FetchWeatherAsyncTask().execute(location);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.refresh) {
-            new FetchWeatherAsyncTask().execute("94043");
+            updateData();
+            return true;
+        } else if (item.getItemId() == R.id.action_show_location) {
+            showOnMap();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showOnMap() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location =sharedPreferences.getString(getString(R.string.location_key), getString(R.string.default_location));
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q",location).build();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        if (intent.resolveActivity(getActivity().getPackageManager())!=null){
+            startActivity(intent);
+        } else {
+            Toast.makeText(getActivity(),"No application available",Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateData();
     }
 
     @Override
@@ -58,15 +94,19 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
-        String[] forecastArray = {
-                "Today - Sunny - 88/63",
-                "Tomorrow - Foggy - 70/40",
-                "Weds - Cloudy - 72/63"
-        };
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(forecastArray));
-        adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.text1, weekForecast);
-        ((ListView) rootView.findViewById(R.id.list_view)).setAdapter(adapter);
+        adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.text1, new ArrayList<String>());
+        listView = ((ListView) rootView.findViewById(R.id.list_view));
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(this);
         return rootView;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent intent = new Intent(getActivity(), DetailActivity.class);
+        intent.putExtra(DetailActivity.TEXT_EXTRA, adapter.getItem(position));
+        startActivity(intent);
+        Toast.makeText(getActivity(), "you clicked on " + adapter.getItem(position), Toast.LENGTH_LONG).show();
     }
 
     public class FetchWeatherAsyncTask extends AsyncTask<String, Void, String[]> {
