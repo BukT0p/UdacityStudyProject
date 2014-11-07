@@ -1,24 +1,14 @@
 package com.dataart.vyakunin.udacitystudyproject;
 
-import android.annotation.TargetApi;
-import android.content.Context;
-import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceCategory;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
-import android.text.TextUtils;
-
-
-import java.util.List;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -45,7 +35,7 @@ public class SettingsActivity extends PreferenceActivity
         // TODO: Add preferences
         bindPreferenceSummaryToValue(findPreference(getString(R.string.location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.units_key)));
-    }
+   }
 
     /**
      * Attaches a listener so the summary is always updated with the preference value.

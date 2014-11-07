@@ -14,5 +14,7 @@
     <string name="imperial">Imperial</string>
     <string name="units_title">Temperature Units</string>
     <string name="location_on_map">Location on a Map</string>
+    <string name="share_menu_item">Share</string>
+    <string name="share_message">%s #SunshineApp</string>
 
 </resources>
