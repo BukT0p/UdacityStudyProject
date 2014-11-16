@@ -68,6 +68,37 @@ public class TestProvider extends AndroidTestCase {
         );
 
         TestDb.validateCursor(weatherCursor, weatherValues);
+        weatherCursor.close();
+
+
+        weatherCursor = mContext.getContentResolver().query(
+                WeatherEntry.buildWeatherLocation(TestDb.TEST_LOCATION),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null // columns to group by
+        );
+        if (weatherCursor.moveToFirst()) {
+            TestDb.validateCursor(weatherCursor, weatherValues);
+        } else {
+            fail("No weather data returned!");
+        }
+        weatherCursor.close();
+
+
+        weatherCursor = mContext.getContentResolver().query(
+                WeatherEntry.buildWeatherLocationWithDate(TestDb.TEST_LOCATION, TestDb.TEST_DATE),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null // columns to group by
+        );
+        if (weatherCursor.moveToFirst()) {
+            TestDb.validateCursor(weatherCursor, weatherValues);
+        } else {
+            fail("No weather data returned!");
+        }
+        weatherCursor.close();
 
         dbHelper.close();
     }
