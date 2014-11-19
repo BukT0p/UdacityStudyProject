@@ -1,8 +1,10 @@
 package com.dataart.vyakunin.udacitystudyproject;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -16,8 +18,44 @@ import java.util.Set;
 public class TestProvider extends AndroidTestCase {
     private static final String TAG = TestProvider.class.getSimpleName();
 
-    public void testDeleteDb() throws Throwable {
-        getContext().deleteDatabase(WeatherDBHelper.DATABASE_NAME);
+    // brings our database to an empty state
+    public void deleteAllRecords() {
+        mContext.getContentResolver().delete(
+                WeatherEntry.CONTENT_URI,
+                null,
+                null
+        );
+        mContext.getContentResolver().delete(
+                LocationEntry.CONTENT_URI,
+                null,
+                null
+        );
+
+        Cursor cursor = mContext.getContentResolver().query(
+                WeatherEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals(0, cursor.getCount());
+        cursor.close();
+
+        cursor = mContext.getContentResolver().query(
+                LocationEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals(0, cursor.getCount());
+        cursor.close();
+    }
+
+    // Since we want each test to start with a clean slate, run deleteAllRecords
+    // in setUp (called by the test runner before each test).
+    public void setUp() {
+        deleteAllRecords();
     }
 
     public void testInsertReadProvider() {
@@ -25,38 +63,29 @@ public class TestProvider extends AndroidTestCase {
         // If there's an error in those massive SQL table creation Strings,
         // errors will be thrown here when you try to get a writable database.
         WeatherDBHelper dbHelper = new WeatherDBHelper(mContext);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         ContentValues testValues = TestDb.createNorthPoleLocationValues();
 
-        long locationRowId;
-        locationRowId = db.insert(LocationEntry.TABLE_NAME, null, testValues);
-
-        // Verify we got a row back.
-        assertTrue(locationRowId != -1);
-        Log.d(TAG, "New row id: " + locationRowId);
+        Uri returnUri = getContext().getContentResolver().insert(LocationEntry.CONTENT_URI, testValues);
+        long locationRowId = returnUri != null ? ContentUris.parseId(returnUri) : -1;
+        assertTrue(returnUri != null);
 
         // Data's inserted.  IN THEORY.  Now pull some out to stare at it and verify it made
         // the round trip.
 
         // A cursor is your primary interface to the query results.
-        Cursor cursor = db.query(
-                LocationEntry.TABLE_NAME,  // Table to Query
-                null, // all columns
-                null, // Columns for the "where" clause
-                null, // Values for the "where" clause
-                null, // columns to group by
-                null, // columns to filter by row groups
-                null // sort order
+        Cursor cursor = getContext().getContentResolver().query(LocationEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
         );
-
         TestDb.validateCursor(cursor, testValues);
 
         // Fantastic.  Now that we have a location, add some weather!
         ContentValues weatherValues = TestDb.createWeatherValues(locationRowId);
 
-        long weatherRowId = db.insert(WeatherEntry.TABLE_NAME, null, weatherValues);
-        assertTrue(weatherRowId != -1);
+        Uri weatherInsertUri = mContext.getContentResolver().insert(WeatherEntry.CONTENT_URI, weatherValues);
+        assertTrue(weatherInsertUri != null);
 
         // A cursor is your primary interface to the query results.
         Cursor weatherCursor = mContext.getContentResolver().query(
@@ -68,7 +97,6 @@ public class TestProvider extends AndroidTestCase {
         );
 
         TestDb.validateCursor(weatherCursor, weatherValues);
-        weatherCursor.close();
 
 
         weatherCursor = mContext.getContentResolver().query(
@@ -83,7 +111,6 @@ public class TestProvider extends AndroidTestCase {
         } else {
             fail("No weather data returned!");
         }
-        weatherCursor.close();
 
 
         weatherCursor = mContext.getContentResolver().query(
@@ -98,9 +125,61 @@ public class TestProvider extends AndroidTestCase {
         } else {
             fail("No weather data returned!");
         }
-        weatherCursor.close();
+
+        weatherCursor = mContext.getContentResolver().query(
+                WeatherEntry.buildWeatherLocationWithStartDate(TestDb.TEST_LOCATION, TestDb.TEST_DATE),
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null // columns to group by
+        );
+        if (weatherCursor.moveToFirst()) {
+            TestDb.validateCursor(weatherCursor, weatherValues);
+        } else {
+            fail("No weather data returned!");
+        }
+
 
         dbHelper.close();
+    }
+
+    public void testUpdateLocation() {
+        // Create a new map of values, where column names are the keys
+        ContentValues values = TestDb.createNorthPoleLocationValues();
+
+        Uri locationUri = mContext.getContentResolver().
+                insert(LocationEntry.CONTENT_URI, values);
+        long locationRowId = ContentUris.parseId(locationUri);
+
+        // Verify we got a row back.
+        assertTrue(locationRowId != -1);
+        Log.d(TAG, "New row id: " + locationRowId);
+
+        ContentValues updatedValues = new ContentValues(values);
+        updatedValues.put(LocationEntry._ID, locationRowId);
+        updatedValues.put(LocationEntry.COLUMN_LOCATION_NAME, "Santa's Village");
+
+        int count = mContext.getContentResolver().update(
+                LocationEntry.CONTENT_URI, updatedValues, LocationEntry._ID + "= ?",
+                new String[] { Long.toString(locationRowId)});
+
+        assertEquals(count, 1);
+
+        // A cursor is your primary interface to the query results.
+        Cursor cursor = mContext.getContentResolver().query(
+                LocationEntry.buildLocationUri(locationRowId),
+                null,
+                null, // Columns for the "where" clause
+                null, // Values for the "where" clause
+                null // sort order
+        );
+
+        TestDb.validateCursor(cursor, updatedValues);
+    }
+
+    // Make sure we can still delete after adding/updating stuff
+    public void testDeleteRecordsAtEnd() {
+        deleteAllRecords();
     }
 
     public void testGetType() {
