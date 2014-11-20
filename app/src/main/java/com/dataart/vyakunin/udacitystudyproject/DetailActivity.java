@@ -170,7 +170,9 @@ public class DetailActivity extends ActionBarActivity {
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
             Log.v(LOG_TAG, "In onLoadFinished");
-            if (!data.moveToFirst()) { return; }
+            if (!data.moveToFirst()) {
+                return;
+            }
 
             String dateString = Utility.formatDate(
                     data.getString(data.getColumnIndex(WeatherEntry.COLUMN_DATETEXT)));
@@ -184,11 +186,11 @@ public class DetailActivity extends ActionBarActivity {
 
             boolean isMetric = Utility.isMetric(getActivity());
 
-            String high = Utility.formatTemperature(
+            String high = Utility.formatTemperature(getActivity(),
                     data.getDouble(data.getColumnIndex(WeatherEntry.COLUMN_MAX_TEMP)), isMetric);
             ((TextView) getView().findViewById(R.id.detail_high_textview)).setText(high);
 
-            String low = Utility.formatTemperature(
+            String low = Utility.formatTemperature(getActivity(),
                     data.getDouble(data.getColumnIndex(WeatherEntry.COLUMN_MIN_TEMP)), isMetric);
             ((TextView) getView().findViewById(R.id.detail_low_textview)).setText(low);
 
@@ -204,6 +206,7 @@ public class DetailActivity extends ActionBarActivity {
         }
 
         @Override
-        public void onLoaderReset(Loader<Cursor> loader) { }
+        public void onLoaderReset(Loader<Cursor> loader) {
+        }
     }
 }
