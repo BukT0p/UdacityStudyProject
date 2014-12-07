@@ -3,39 +3,34 @@ package com.dataart.vyakunin.udacitystudyproject;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.os.Build;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
-public class HomeActivity extends ActionBarActivity {
+public class HomeActivity extends ActionBarActivity implements ItemSelectedCallback {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
+    private boolean twoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new HomeFragment())
-                    .commit();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+        }
+        getSupportActionBar().setIcon(R.drawable.ic_logo);
+        getSupportActionBar().setTitle(null);
+        if (twoPane = getResources().getBoolean(R.bool.two_pane)) {
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction().add(R.id.weather_detail_container, DetailFragment.newInstance(null), DetailFragment.TAG).commit();
+            }
         }
     }
 
@@ -87,6 +82,16 @@ public class HomeActivity extends ActionBarActivity {
             startActivity(intent);
         } else {
             Log.d(TAG, "Couldn't call " + location + ", no receiving apps installed!");
+        }
+    }
+
+    @Override
+    public void onItemSelected(String date) {
+        if (twoPane) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.weather_detail_container, DetailFragment.newInstance(date), DetailFragment.TAG).commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class).putExtra(DetailActivity.DATE_KEY, date);
+            startActivity(intent);
         }
     }
 

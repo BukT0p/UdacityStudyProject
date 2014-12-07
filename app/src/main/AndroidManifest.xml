@@ -34,9 +34,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.dataart.vyakunin.udacitystudyproject.HomeActivity" />
         </activity>
+
         <provider
-            android:authorities="com.dataart.vyakunin.udacitystudyproject"
-            android:name=".data.WeatherProvider"/>
+            android:name=".data.WeatherProvider"
+            android:authorities="com.dataart.vyakunin.udacitystudyproject" />
+        <service android:name=".service.SunshineService"  />
     </application>
 
 </manifest>

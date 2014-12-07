@@ -1,12 +1,16 @@
 package com.dataart.vyakunin.udacitystudyproject;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract;
+import com.dataart.vyakunin.udacitystudyproject.service.SunshineService;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -28,6 +32,10 @@ public class SettingsActivity extends PreferenceActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings_legacy);
+
+        Toolbar actionbar = (Toolbar) findViewById(R.id.toolbar);
+        actionbar.setTitle(R.string.title_activity_settings);
         // Add 'general' preferences, defined in the XML file
         addPreferencesFromResource(R.xml.pref_general);
 
@@ -63,11 +71,11 @@ public class SettingsActivity extends PreferenceActivity
         String stringValue = value.toString();
 
         // are we starting the preference activity?
-        if ( !mBindingPreference ) {
+        if (!mBindingPreference) {
             if (preference.getKey().equals(getString(R.string.pref_location_key))) {
-                FetchWeatherAsyncTask weatherTask = new FetchWeatherAsyncTask(this);
-                String location = value.toString();
-                weatherTask.execute(location);
+                Intent intent = new Intent(this, SunshineService.class);
+                intent.putExtra(SunshineService.LOCATION_QUERY_PARAM, value.toString());
+                startService(intent);
             } else {
                 // notify code that weather may be impacted
                 getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);

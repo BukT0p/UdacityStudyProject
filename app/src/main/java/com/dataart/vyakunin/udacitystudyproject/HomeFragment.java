@@ -8,7 +8,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,16 +16,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract;
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract.LocationEntry;
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract.WeatherEntry;
+import com.dataart.vyakunin.udacitystudyproject.service.SunshineService;
 
 import java.util.Date;
 
 public class HomeFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private static final String SELECTED_ITEM = "selected_item";
     private ForecastAdapter mForecastAdapter;
 
     private static final int FORECAST_LOADER = 0;
@@ -46,7 +46,8 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
             WeatherEntry.COLUMN_SHORT_DESC,
             WeatherEntry.COLUMN_MAX_TEMP,
             WeatherEntry.COLUMN_MIN_TEMP,
-            LocationEntry.COLUMN_LOCATION_SETTING
+            LocationEntry.COLUMN_LOCATION_SETTING,
+            WeatherEntry.COLUMN_WEATHER_ID
     };
 
 
@@ -58,6 +59,10 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
     public static final int COL_WEATHER_MAX_TEMP = 3;
     public static final int COL_WEATHER_MIN_TEMP = 4;
     public static final int COL_LOCATION_SETTING = 5;
+    public static final int COL_WEATHER_CONDITION_ID = 6;
+    private ListView listView;
+    private int selectedItemPosition;
+    private CustomView customView;
 
 
     @Override
@@ -82,6 +87,10 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
             updateWeather();
             return true;
         }
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(getActivity(), SettingsActivity.class));
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -94,9 +103,10 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
         mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
+        customView = (CustomView) rootView.findViewById(R.id.custom_view);
 
         // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.list_view);
+        listView = (ListView) rootView.findViewById(R.id.list_view);
         listView.setAdapter(mForecastAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -104,13 +114,14 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Cursor cursor = mForecastAdapter.getCursor();
                 if (cursor != null && cursor.moveToPosition(position)) {
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .putExtra(DetailActivity.DATE_KEY, cursor.getString(COL_WEATHER_DATE));
-                    startActivity(intent);
+                    ((ItemSelectedCallback) getActivity()).onItemSelected(cursor.getString(COL_WEATHER_DATE));
+
                 }
             }
         });
-
+        if (savedInstanceState != null) {
+            selectedItemPosition = savedInstanceState.getInt(SELECTED_ITEM, 0);
+        }
         return rootView;
     }
 
@@ -122,7 +133,9 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
 
     private void updateWeather() {
         String location = Utility.getPreferredLocation(getActivity());
-        new FetchWeatherAsyncTask(getActivity()).execute(location);
+        Intent intent = new Intent(getActivity(), SunshineService.class);
+        intent.putExtra(SunshineService.LOCATION_QUERY_PARAM, location);
+        getActivity().startService(intent);
     }
 
     @Override
@@ -132,6 +145,13 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
             getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
         }
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(SELECTED_ITEM, listView.getCheckedItemPosition());
+        super.onSaveInstanceState(outState);
+    }
+
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -165,7 +185,21 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mForecastAdapter.swapCursor(data);
+        if (data.getCount() > 0 && listView.getSelectedItemPosition() == ListView.INVALID_POSITION && listView.getChoiceMode() == ListView.CHOICE_MODE_SINGLE) {
+            listView.post(new Runnable() {
+                @Override
+                public void run() {
+                    listView.performItemClick(
+                            listView.getChildAt(selectedItemPosition),
+                            selectedItemPosition,
+                            listView.getAdapter().getItemId(selectedItemPosition));
+                }
+            });
+        }
+        if (customView != null)
+            customView.setValues(TemperatureItem.populateFromCursor(data));
     }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {

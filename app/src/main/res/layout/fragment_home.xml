@@ -1,4 +1,19 @@
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/list_view"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+    android:layout_height="match_parent">
+
+
+    <ListView
+        android:id="@+id/list_view"
+        style="@style/ForecastStyleList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+    <com.dataart.vyakunin.udacitystudyproject.CustomView
+        android:id="@+id/custom_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
+</FrameLayout>
