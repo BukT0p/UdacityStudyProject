@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.dataart.vyakunin.udacitystudyproject.sync.SunshineSyncAdapter;
+
 
 public class HomeActivity extends ActionBarActivity implements ItemSelectedCallback {
 
@@ -32,6 +34,7 @@ public class HomeActivity extends ActionBarActivity implements ItemSelectedCallb
                 getSupportFragmentManager().beginTransaction().add(R.id.weather_detail_container, DetailFragment.newInstance(null), DetailFragment.TAG).commit();
             }
         }
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
 
@@ -94,5 +97,7 @@ public class HomeActivity extends ActionBarActivity implements ItemSelectedCallb
             startActivity(intent);
         }
     }
+
+
 
 }

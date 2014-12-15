@@ -151,7 +151,7 @@ public class Utility {
         return temp;
     }
 
-    static String formatTemperature(Context context, double temperature, boolean isMetric) {
+    public static String formatTemperature(Context context, double temperature, boolean isMetric) {
         return context.getString(R.string.format_temperature, convertTemperature(temperature, isMetric));
     }
 

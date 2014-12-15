@@ -1,17 +1,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
-        android:key="@string/pref_location_key"
-        android:title="@string/pref_title_edit_location"
         android:defaultValue="@string/pref_location_default"
+        android:key="@string/pref_location_key"
+        android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
-        android:maxLines="1" />
+        android:title="@string/pref_title_edit_location" />
     <ListPreference
-        android:key="@string/pref_units_key"
-        android:title="@string/units_title"
         android:defaultValue="@string/pref_units_metric"
+        android:entries="@array/units_array"
         android:entryValues="@array/units_array_values"
-        android:entries="@array/units_array"/>
+        android:key="@string/pref_units_key"
+        android:title="@string/units_title" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="@string/pref_sync"
+        android:title="@string/pref_sync" />
 
 
 </PreferenceScreen>

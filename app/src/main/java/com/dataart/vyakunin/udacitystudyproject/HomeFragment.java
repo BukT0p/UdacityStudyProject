@@ -9,8 +9,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +18,6 @@ import android.widget.ListView;
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract;
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract.LocationEntry;
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract.WeatherEntry;
-import com.dataart.vyakunin.udacitystudyproject.service.SunshineService;
 
 import java.util.Date;
 
@@ -73,20 +70,11 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.homefragment, menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.refresh) {
-            updateWeather();
-            return true;
-        }
         if (id == R.id.action_settings) {
             startActivity(new Intent(getActivity(), SettingsActivity.class));
             return true;
@@ -129,13 +117,6 @@ public class HomeFragment extends Fragment implements LoaderManager.LoaderCallba
     public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(FORECAST_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
-    }
-
-    private void updateWeather() {
-        String location = Utility.getPreferredLocation(getActivity());
-        Intent intent = new Intent(getActivity(), SunshineService.class);
-        intent.putExtra(SunshineService.LOCATION_QUERY_PARAM, location);
-        getActivity().startService(intent);
     }
 
     @Override

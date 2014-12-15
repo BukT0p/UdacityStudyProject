@@ -1,16 +1,17 @@
 package com.dataart.vyakunin.udacitystudyproject;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NavUtils;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.dataart.vyakunin.udacitystudyproject.data.WeatherContract;
-import com.dataart.vyakunin.udacitystudyproject.service.SunshineService;
+import com.dataart.vyakunin.udacitystudyproject.sync.SunshineSyncAdapter;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -36,6 +37,14 @@ public class SettingsActivity extends PreferenceActivity
 
         Toolbar actionbar = (Toolbar) findViewById(R.id.toolbar);
         actionbar.setTitle(R.string.title_activity_settings);
+        actionbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
+
+        actionbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavUtils.navigateUpFromSameTask(SettingsActivity.this);
+            }
+        });
         // Add 'general' preferences, defined in the XML file
         addPreferencesFromResource(R.xml.pref_general);
 
@@ -73,13 +82,15 @@ public class SettingsActivity extends PreferenceActivity
         // are we starting the preference activity?
         if (!mBindingPreference) {
             if (preference.getKey().equals(getString(R.string.pref_location_key))) {
-                Intent intent = new Intent(this, SunshineService.class);
-                intent.putExtra(SunshineService.LOCATION_QUERY_PARAM, value.toString());
-                startService(intent);
+                SunshineSyncAdapter.syncImmediately(this);
+            } else if (preference instanceof CheckBoxPreference) {
+                //sync
+
             } else {
                 // notify code that weather may be impacted
                 getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
             }
+
         }
 
         if (preference instanceof ListPreference) {
